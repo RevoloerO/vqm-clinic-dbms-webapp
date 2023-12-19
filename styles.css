@@ -1,0 +1,32 @@
+body {
+}
+a:visited {
+    color: blue;
+}
+.nav{
+    display: flex;
+    flex-direction: row;
+}
+.button {
+    width: fit-content;
+    border: 1px solid;
+    padding:5px;
+    margin: 5px 5px;
+}
+#form, #delete-form, #patient-form {
+    border: 1px solid;
+    margin: 15px 0px;
+    padding: 10px 10px 10px;
+    width: fit-content;
+}
+table {
+    border: 1px solid;
+    margin: 15px 0px;
+
+}
+
+table td, th {
+    border: 1px solid;
+}
+
+   

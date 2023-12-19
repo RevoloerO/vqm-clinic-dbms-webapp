@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Patient Information</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="mgm/master.js"></script>
+    <script>
+        //fetch data for doctorlist
+        fetch(`${locahost}/api/doctors`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            return response.json();
+        }).then(data => {
+            let obj = JSON.parse(data);
+            let container = document.getElementById("doctor-check");
+            let select = document.getElementById("fd2");
+            obj.map((item) => {
+                let tr = document.createElement("tr");
+                let td1 = document.createElement("td");
+                td1.innerText = item.DoctorID;
+                tr.appendChild(td1);
+                container.appendChild(tr);
+                let op = document.createElement("option");
+                op.value = item.DoctorID;
+                op.text = "Dr. " + item.DoctorFirstName + " " + item.DoctorLastName;
+                select.appendChild(op)
+            });
+        }).catch(err => {
+        });
+        function checkDoctorID(value) {
+            const theTbl = document.getElementById('doctor-check');
+            for (var i = 0; i < theTbl.rows.length; i++) {
+                if (theTbl.rows[i].cells[0].innerText == value) return true
+            }
+            return false;
+        }
+
+        //fetch data for patient list
+        fetch(`${locahost}/api/patients` , {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            return response.json();
+        }).then(data => {
+            let obj = JSON.parse(data);
+            let container = document.getElementById("patient-check");
+            obj.map((item) => {
+                let tr = document.createElement("tr");
+                let td1 = document.createElement("td");
+                td1.innerText = item.PatientID;
+                tr.appendChild(td1);
+                container.appendChild(tr);
+            });
+        }).catch(err => {
+        });
+        function checkPatientID(value) {
+            const theTbl = document.getElementById('patient-check');
+            for (var i = 0; i < theTbl.rows.length; i++) {
+                if (theTbl.rows[i].cells[0].innerText == value) return true
+            }
+            return false;
+        }
+
+        //fetch data for appointment list
+        fetch(`${locahost}/api/appointments` , {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            return response.json();
+        }).then(data => {
+            let obj = JSON.parse(data);
+            let container = document.getElementById("appointment-check");
+            obj.map((item) => {
+                let tr = document.createElement("tr");
+                let td1 = document.createElement("td");
+                td1.innerText = item.AppointmentID;
+                tr.appendChild(td1);
+                container.appendChild(tr);
+            });
+        }).catch(err => {
+        });
+        function maxAppointmentID() {
+            const theTbl = document.getElementById('appointment-check');
+            return Number(theTbl.rows[theTbl.rows.length - 1].cells[0].innerText);
+        }
+
+        //supporting functions
+        function changeDateFormat(inputDate) {  // expects Y-m-d
+            var splitDate = inputDate.split('-');
+            if (splitDate.count == 0) {
+                return null;
+            }
+            var year = splitDate[0];
+            var month = splitDate[1];
+            var day = splitDate[2];
+            return month + '/' + day + '/' + year;
+        }
+        function checkDate(submittedDay) {
+            const toDay = new Date();
+            let day1 = toDay.getDate();
+            let month = toDay.getMonth() + 1;
+            let year = toDay.getFullYear();
+
+            var getday = new Date(submittedDay);
+            if (getday > toDay) {
+                return false
+            } else return true
+        }
+        function checkID(value) {
+            const theTbl = document.getElementById('table');
+
+            for (var i = 0; i < theTbl.rows.length; i++) {
+                if (theTbl.rows[i].cells[0].innerText == value) return false
+            }
+            return true;
+        }
+
+        //Insert Data to Database
+        function insertData() {
+
+            var patientid = document.getElementById("fd1").value;
+            var date = document.getElementById("fd3").value;
+            var time = document.getElementById("fd4").value;
+
+            if (!patientid) {
+                return "ID is required!";
+            } else if (!date) {
+                return "Appointment Date is required!";
+            }
+            else if (!time) {
+                return "Appointment Time is required!";
+            }
+            if (!checkPatientID(patientid)) {
+                return "Patient ID is not existed!";
+            }
+            if (checkDate(date)) {
+                return "Can not make appointment in the past";
+            }
+
+
+            var data1 = JSON.stringify({
+                1: Number(maxAppointmentID() + 1),
+                2: document.getElementById("fd4").value,
+                3: document.getElementById("fd5").value,
+                4: document.getElementById("fd6").value,
+                5: 'Pending',
+                6: changeDateFormat(document.getElementById("fd3").value),
+                7: Number(document.getElementById("fd2").value),
+                8: Number(document.getElementById("fd1").value)
+            });
+            //alert(typeof (document.getElementById("fd1").value))
+
+            fetch(`${locahost}/api/appointments`, {
+                method: "POST",
+                body: data1,
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+                .then(response => {
+                    response.json()
+                })
+            return 'Insert data successful!!'
+        }
+        function submitData() {
+            alert(insertData())
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        }
+        //Get Patient Info in DB
+        function preCheck() {
+            var patientid = document.getElementById("cfd1").value;
+            if (!patientid) {
+                return "ID is required!";
+            }
+            if (!checkPatientID(patientid)) {
+                return "Patient ID is not existed!";
+            }
+            return true
+        }
+
+        function getPatient() {
+            var patientid = document.getElementById("cfd1").value;
+            fetch(`${locahost}/api/singlePatient/${patientid}`, {
+                method: "GET",
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                let obj = JSON.parse(data);
+                console.log(obj[0]);
+
+                let container = document.getElementById("patient-table");
+                let container2 = document.getElementById("con-table");
+                obj.map((item) => {
+                    let tr = document.createElement("tr");
+                    let tr2 = document.createElement("tr");
+
+                    let td1 = document.createElement("td");
+                    let td2 = document.createElement("td");
+                    let td3 = document.createElement("td");
+                    let td4 = document.createElement("td");
+                    let td5 = document.createElement("td");
+                    let td6 = document.createElement("td");
+                    let td7 = document.createElement("td");
+                    let td8 = document.createElement("td");
+                    let td9 = document.createElement("td");
+                    let td10 = document.createElement("td");
+                    let td11 = document.createElement("td");
+                    let td12 = document.createElement("td");
+                    td1.innerText = patientid;
+                    td2.innerText = item.PatientFirstName;
+                    td3.innerText = item.PatientLastName;
+                    td4.innerText = changeDateFormat(item.PatientDateBirth.split('T')[0]);
+                    td5.innerText = item.PatientGender;
+                    td6.innerText = item.PatientAge;
+                    td7.innerText = item.PatientEmail;
+                    td8.innerText = item.PatientAddress;
+                    td9.innerText = item.PatientCity;
+                    td10.innerText = item.PatientState;
+                    td11.innerText = item.PatientZipCode;
+                    td12.innerText = item.PatientPhone;
+                    tr.appendChild(td1)
+                    tr.appendChild(td2)
+                    tr.appendChild(td3)
+                    tr.appendChild(td4)
+                    tr.appendChild(td5)
+                    tr.appendChild(td6)
+                    tr.appendChild(td7)
+                    tr.appendChild(td8)
+                    tr.appendChild(td9)
+                    tr.appendChild(td10)
+                    tr.appendChild(td11)
+                    tr.appendChild(td12)
+                    container.appendChild(tr);
+
+                    let tda1 = document.createElement("td");
+                    let tda2 = document.createElement("td");
+                    let tda3 = document.createElement("td");
+                    let tda4 = document.createElement("td");
+                    let tda5 = document.createElement("td");
+                    let tda6 = document.createElement("td");
+                    let tda7 = document.createElement("td");
+                    tda1.innerText = item.InsuranceID;
+                    tda2.innerText = item.InsuranceProvider;
+                    tda3.innerText = item.PolicyNumber;
+                    tda4.innerText = item.MedicalHistoryID;
+                    tda5.innerText = item.Medications;
+                    tda6.innerText = item.Allergies;
+                    tda7.innerText = item.ChronicConditions;
+                    tr2.appendChild(tda1)
+                    tr2.appendChild(tda2)
+                    tr2.appendChild(tda3)
+                    tr2.appendChild(tda4)
+                    tr2.appendChild(tda5)
+                    tr2.appendChild(tda6)
+                    tr2.appendChild(tda7)
+                    container2.appendChild(tr2);
+                })
+
+            }).catch(err => {
+            });
+        }
+        function getPatientInfo() {
+            let check = preCheck()
+            if (check == true) {
+                getPatient()
+                return false
+            }
+            else
+                alert(preCheck())
+            return false
+            /*setTimeout(function () {
+                window.location.reload();
+            }, 1000);*/
+        }
+        function refreshRecord() {
+            setTimeout(function () {
+                window.location.reload();
+            }, 100);
+            return
+        }
+    </script>
+</head>
+<body>
+    <div class="nav">
+        <div class="button"><a href="mgm/managerpage.html">Management Page</a></div>
+        <div class="button"><a href="homepage.html">Home Page</a> </div>
+        <div class="button"><a href="index.html">Log out</a> </div>
+    </div>
+    <h1>Patient Information</h1>
+    <div class="nav">
+        <form id="form" onsubmit="submitData()">
+            <h3> Make Appointment</h3>
+            <label for="fd1">Patient ID:</label>     <input type="number" id="fd1" name="fd1"><br><br>
+            Select Dortor: <select id="fd2" name="fd2"></select><br /><br />
+            <label for="fd3">Appointment Date:</label>     <input type="date" id="fd3" name="fd3"><br><br>
+            <label for="fd4">Appointment Time:</label>     <input type="time" id="fd4" name="fd4"><br><br>
+            <label for="fd5">Visit Reason:</label>     <input type="text" id="fd5" name="fd5"><br><br>
+            <label for="fd6">Appointment Notes:</label>     <input type="text" id="fd6" name="fd6"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <form id="patient-form" method="post" onsubmit="return getPatientInfo()">
+            <h3> Check Patient Info</h3>
+            <label for="cfd1">Patient ID:</label>     <input type="number" id="cfd1" name="cfd1"><br><br>
+            <input type="submit" value="Check Info">
+            <button type="button" onclick="refreshRecord()">Refresh Record</button>
+        </form>
+    </div>
+    <div>
+        <h3>Patient Information</h3>
+        <table id="patient-table">
+
+            <tr>
+                <th>Patient ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Date of Birth</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>ZipCode</th>
+                <th>Phone</th>
+            </tr>
+        </table>
+        <h3>Confidential Information</h3>
+        <table id="con-table">
+            <tr>
+                <th>InsuranceID</th>
+                <th>Insurance Provider</th>
+                <th>Policy Number</th>
+                <th>Medical History ID</th>
+                <th>Medications</th>
+                <th>Allergies</th>
+                <th>ChronicConditions</th>
+            </tr>
+        </table>
+        <table id="doctor-check" hidden><tr><th>Doctor ID</th></tr></table>
+        <table id="patient-check" hidden><tr><th>Patient ID</th></tr></table>
+        <table id="appointment-check" hidden><tr><th>Appointment ID</th></tr></table>
+    </div>   
+</body>
+</html>

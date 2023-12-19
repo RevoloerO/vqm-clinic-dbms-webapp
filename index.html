@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Login Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        function loginCheck() {
+            var id = document.getElementById("fd1").value;
+            var password = document.getElementById("fd2").value;
+            if (!id || !password) {
+                alert("Id or password is missing")
+                return
+            }
+
+            if (id == "Group1" && password == "Group@1") {
+                // document.location.href = "homepage.html"; }, 100);
+                setTimeout(function () { window.location.replace("homepage.html") }, 100);
+                return false
+            } else {
+                alert("Id or password is not correct")
+                return
+            }
+            
+        }
+    </script>
+</head>
+<body>
+    <h1>Primary Care Clinic DBMS</h1>
+    <div class="login">
+        <form id="submit-form"  method="post" onsubmit="return loginCheck()">
+            <label for="fd1">Account ID:</label>     <input type="text" id="fd1" name="fd1"><br><br>
+            <label for="fd2">Password:</label>     <input type="password" id="fd2" name="fd2"><br><br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</body>
+</html>

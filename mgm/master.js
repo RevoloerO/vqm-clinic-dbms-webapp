@@ -1,0 +1,1 @@
+var locahost = 'http://localhost:1337'

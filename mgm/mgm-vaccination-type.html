@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Vacinnation Type Info Management</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="master.js"></script>
+    <script>
+
+        fetch(`${locahost}/api/vaccinationTypes`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            return response.json();
+        }).then(data => {
+            let obj = JSON.parse(data);
+            //console.log(obj[0]);
+            let container = document.getElementById("table");
+            obj.map((item) => {
+                //console.log(item.DoctorID);
+                let tr = document.createElement("tr");
+                let td1 = document.createElement("td");
+                let td2 = document.createElement("td");
+                let td3 = document.createElement("td");
+                let td4 = document.createElement("td");
+                let td5 = document.createElement("td");
+                td1.innerText = item.VaccinationTypeID;
+                td2.innerText = item.VaccinationName;
+                td3.innerText = changeDateFormat(item.VaccinationDate.split('T')[0]);
+                td4.innerText = item.VaccinationDescription;
+                td5.innerText = item.RecommendedAge;
+                tr.appendChild(td1)
+                tr.appendChild(td2)
+                tr.appendChild(td3)
+                tr.appendChild(td4)
+                tr.appendChild(td5)
+                container.appendChild(tr);
+            });
+        }).catch(err => {
+        });
+
+        function changeDateFormat(inputDate) {  // expects Y-m-d
+            var splitDate = inputDate.split('-');
+            if (splitDate.count == 0) {
+                return null;
+            }
+            var year = splitDate[0];
+            var month = splitDate[1];
+            var day = splitDate[2];
+            return month + '/' + day + '/' + year;
+        }
+        function checkID(value) {
+            const theTbl = document.getElementById('table');
+
+            for (var i = 0; i < theTbl.rows.length; i++) {
+                if (theTbl.rows[i].cells[0].innerText == value) return false
+            }
+            return true;
+        }
+        //Insert Data to Database
+        function insertData() {
+
+            var id = document.getElementById("fd1").value;
+            var date = document.getElementById("fd3").value;
+            if (!id) {
+                return "ID is required!";
+            }
+            if (!date) {
+                return "Vaccine Date is required!";
+            }
+            if (!checkID(id)) {
+                return "ID is duplicate!";
+            }
+
+            var data1 = JSON.stringify({
+                1: Number(document.getElementById("fd1").value),
+                2: document.getElementById("fd2").value,
+                3: changeDateFormat(document.getElementById("fd3").value),
+                4: document.getElementById("fd4").value,
+                5: Number(document.getElementById("fd5").value)
+            });
+            //alert(typeof (document.getElementById("fd1").value))
+
+            fetch(`${locahost}/api/vaccinationTypes` , {
+                method: "POST",
+                body: data1,
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+                .then(response => {
+                    response.json()
+                })
+            return 'Insert data successful!!'
+        }
+        function submitData() {
+            alert(insertData())
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        }
+        //Delete Data in Database
+        function deleteData() {
+            var id = document.getElementById("dfd1").value;
+            if (!id) {
+                return "ID is required to Delete!";
+            }
+            if (checkID(id)) {
+                return "Please input valid ID!";
+            }
+            if (!confirm(`Confirm delete id ${id} in this table`) == true) {
+                return "Cancel Delete request!";
+            }
+            //alert(typeof (document.getElementById("fd1").value))
+            var data1 = JSON.stringify({
+                1: Number(document.getElementById("dfd1").value)
+            });
+            fetch(`${locahost}/delete/vaccinationTypes`, {
+                method: "POST",
+                body: data1,
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+                .then(response => {
+                    response.json()
+                })
+            return 'Delete data successful!!'
+        }
+        function removeData() {
+            alert(deleteData())
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+    <div class="nav">
+        <div class="button"><a href="../homepage.html">Home Page</a> </div>
+        <div class="button"><a href="../index.html">Log out</a> </div>
+        <div class="button"><a href="managerpage.html">Go back</a> </div>
+    </div>
+    <h1>Vaccination Type Management</h1>
+    <div class="nav">
+        <form id="form" onsubmit="submitData()">
+            <h3> Addition Form</h3>
+            <label for="fd1">Vaccination Type ID:</label>     <input type="number" id="fd1" name="fd1"><br><br>
+            <label for="fd2">Vaccination Name:</label>     <input type="text" id="fd2" name="fd2"><br><br>
+            <label for="fd3">Vacination Date:</label>     <input type="date" id="fd3" name="fd3"><br><br>
+            <label for="fd4">Vaccination Description:</label>     <input type="text" id="fd4" name="fd4"><br><br>
+            <label for="fd5">Recommended Age</label>     <input type="number" id="fd5" name="fd5"><br><br>
+            <input type="submit" value="Add Data">
+        </form>
+        <form id="delete-form" onsubmit="removeData()">
+            <h3> Delete Form</h3>
+            <label for="dfd1">Vaccination Type ID:</label>     <input type="number" id="dfd1" name="dfd1"><br><br>
+            <input type="submit" value="Delete Data">
+        </form>
+    </div>
+    
+    <div>
+        <table id="table">
+            <tr>
+                <th>Vaccination Type ID</th>
+                <th>Vaccination Name</th>
+                <th>Vacination Date</th>
+                <th>Vaccination Description</th>
+                <th>Recommended Age</th>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
